@@ -173,12 +173,12 @@ function ratingallocate_update_instance(stdClass $ratingallocate, mod_ratingallo
         foreach ($array_of_deleted_choices as $choiceid) {
             if ($choiceid > 0) {
                 // delete choice
-                $DB->delete_records('ratingallocate_choices', 
+                $DB->delete_records('ratingallocate_choices',
                         array('id' => $choiceid, 'ratingallocateid' => $ratingallocate->id
                         ));
             }
         }
-        
+
         $transaction->allow_commit();
         return $bool;
     } catch (Exception $e) {
@@ -252,7 +252,22 @@ function ratingallocate_delete_instance($id) {
  * @return boolean
  */
 function ratingallocate_print_recent_activity($course, $viewfullnames, $timestart) {
-    return false; // True if anything was printed, otherwise false
+
+    $events = \mod_ratingallocate\recent_activity::get_recent_activity_events($course, $timestart);
+    if (empty($events)) {
+        return false;
+    }
+
+    $namesbyid = \mod_ratingallocate\recent_activity::get_activity_names($events);
+
+    foreach ($events as $event) {
+        echo html_writer::div(
+            html_writer::div($event->get_name()) .
+            html_writer::link($event->get_url(), $namesbyid[$event->objectid])
+        );
+    }
+
+    return true;
 }
 
 /**
@@ -271,7 +286,7 @@ function ratingallocate_print_recent_activity($course, $viewfullnames, $timestar
  * @param int $groupid check for a particular group's activity only, defaults to 0 (all groups)
  * @return void adds items into $activities and increases $index
  */
-function ratingallocate_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, 
+function ratingallocate_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid,
         $userid = 0, $groupid = 0) {
 }
 
